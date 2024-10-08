@@ -52,7 +52,7 @@ The project is built on **Secret Network** for privacy-preserving NFTs, ensuring
 - **Evolutionary NFTs:** The dynamic nature of the NFT makes it more engaging and valuable. The more effort a user puts into their hike, the more their NFT reflects it.
 - **User-Centric UX:** The platform design emphasizes ease of use, requiring minimal tech expertise to check in or track NFT evolution. The focus is on making the experience accessible for both seasoned NFT collectors and complete newcomers.
 
-### TODOs:
+### TODOs
 
 - Fill in the details of the exact Great Walks and locations that will trigger NFT updates.
 - Finalize the smart contract specifications and include the details here for minting and evolving the NFTs.
