@@ -28,6 +28,7 @@
     "zod": "^3.23.3"
   },
   "devDependencies": {
+    "@keplr-wallet/types": "^0.12.132",
     "@types/eslint": "^8.56.10",
     "@types/node": "^20.14.10",
     "@types/react": "^18.3.3",
