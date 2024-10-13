@@ -16,24 +16,12 @@ import Link from "next/link";
 
 // Placeholder data for NFT tickets
 const nftTickets = [
-  { id: 1, name: "Milford Track", startDate: "2023-12-01", status: "Upcoming" },
-  {
-    id: 2,
-    name: "Routeburn Track",
-    startDate: "2023-11-15",
-    status: "Completed",
-  },
-  { id: 3, name: "Kepler Track", startDate: "2024-01-10", status: "Upcoming" },
-  {
-    id: 4,
-    name: "Abel Tasman Coast Track",
-    startDate: "2023-10-20",
-    status: "Completed",
-  },
+  { id: 1, name: "Milford Track", startDate: "2024-12-01", status: "Upcoming" },
+  { id: 3, name: "Kepler Track", startDate: "2025-01-10", status: "Upcoming" },
   {
     id: 5,
     name: "Tongariro Northern Circuit",
-    startDate: "2024-02-05",
+    startDate: "2025-02-05",
     status: "Upcoming",
   },
 ];
@@ -91,7 +79,7 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Your NFT Tickets</CardTitle>
+          <CardTitle>Your Upcoming Walks</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -124,6 +112,33 @@ export default function DashboardPage() {
                 ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Completed Walks</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-5">
+            <div className="flex aspect-square items-center justify-center rounded-lg bg-muted">
+              <p className="text-muted-foreground">NFT Badge Display Here</p>
+            </div>
+            <div className="flex aspect-square items-center justify-center rounded-lg bg-muted">
+              <p className="text-muted-foreground">NFT Badge Display Here</p>
+            </div>
+            <div className="flex aspect-square items-center justify-center rounded-lg bg-muted">
+              <p className="text-muted-foreground">NFT Badge Display Here</p>
+            </div>
+            <div className="flex aspect-square items-center justify-center rounded-lg bg-muted">
+              <p className="text-muted-foreground">NFT Badge Display Here</p>
+            </div>
+            <div className="flex aspect-square items-center justify-center rounded-lg bg-muted">
+              <p className="text-muted-foreground">NFT Badge Display Here</p>
+            </div>
+            <div className="flex aspect-square items-center justify-center rounded-lg bg-muted">
+              <p className="text-muted-foreground">NFT Badge Display Here</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
