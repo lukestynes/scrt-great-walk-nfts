@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   Card,
@@ -46,6 +46,39 @@ export default function TicketDetailsPage() {
   const [currentNftStage, setCurrentNftStage] = useState(
     Math.floor(ticketData.progress / 20),
   );
+  const [layers, setLayers] = useState<string[]>([]);
+
+  const checkpointsCompleted = ["layer1", "layer2", "layer3"];
+
+  useEffect(() => {
+    const fetchSVGs = async () => {
+      const base = await fetch("/badge.svg").then((res) => res.text());
+
+      // Add other layers conditionally based on the completed checkpoints
+      const layersArray = [base]; // Start with the base layer
+
+      if (checkpointsCompleted.includes("layer1")) {
+        const waterfallLayer = await fetch("/layer1.svg").then((res) =>
+          res.text(),
+        );
+        layersArray.push(waterfallLayer);
+      }
+
+      if (checkpointsCompleted.includes("layer2")) {
+        const keaLayer = await fetch("/layer2.svg").then((res) => res.text());
+        layersArray.push(keaLayer);
+      }
+
+      if (checkpointsCompleted.includes("layer3")) {
+        const keaLayer = await fetch("/layer3.svg").then((res) => res.text());
+        layersArray.push(keaLayer);
+      }
+
+      setLayers(layersArray);
+    };
+
+    void fetchSVGs();
+  }, [checkpointsCompleted]);
 
   return (
     <div className="container mx-auto space-y-6 p-4">
@@ -89,11 +122,20 @@ export default function TicketDetailsPage() {
             <CardDescription>Track your journey</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex aspect-square items-center justify-center rounded-lg bg-muted">
-              <p className="text-muted-foreground">
-                Map will be displayed here
-              </p>
+            <div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 400 400"
+                width="332"
+                height="521"
+                dangerouslySetInnerHTML={{ __html: layers.join("") }}
+              />
             </div>
+            {/* <div className="flex aspect-square items-center justify-center rounded-lg bg-muted"> */}
+            {/*   <p className="text-muted-foreground"> */}
+            {/*     Map will be displayed here */}
+            {/*   </p> */}
+            {/* </div> */}
           </CardContent>
         </Card>
 
