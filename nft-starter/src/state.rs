@@ -1,11 +1,11 @@
-use std::any::type_name;
+use std::{any::type_name, collections::HashMap, iter::Map};
 
 use cosmwasm_std::{Api, BlockInfo, CanonicalAddr, StdError, StdResult, Storage};
 use cosmwasm_storage::{PrefixedStorage, ReadonlyPrefixedStorage};
 use schemars::JsonSchema;
 use secret_toolkit::{
     serialization::{Bincode2, Json, Serde},
-    storage::{AppendStore, Item},
+    storage::{AppendStore, Item, Keymap},
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -56,27 +56,40 @@ pub const VIEWING_KEY_ERR_MSG: &str = "Wrong viewing key for this address or vie
 pub static TX_ID_STORE: AppendStore<u64> = AppendStore::new(b"txid");
 
 // Data for Great Walks NFT
-pub static WALK_TICKET_KEY: &[u8] = b"walkticket";
-pub static WALK_TICKET: Item<WalkTicket> = Item::new(WALK_TICKET_KEY);
+// Administrator of the walks smart contract
+pub static ADMIN_KEY: &[u8] = b"admin";
+pub static ADMIN: Item<CanonicalAddr> = Item::new(ADMIN_KEY);
 
-pub static PRIVATE_WALK_DATA_KEY: &[u8] = b"privatewalk";
-pub static PRIVATE_WALK_DATA: Item<PrivateWalkData> = Item::new(PRIVATE_WALK_DATA_KEY);
+// Storage map for the walks, indexed by walk_id
+pub static WALKS_PUBLIC_KEY: &[u8] = b"walkspub";
+pub static WALKS_PUBLIC: Keymap<u8, WalkPublicData> = Keymap::new(WALKS_PUBLIC_KEY);
 
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
-pub struct WalkTicket {
+// Storage map for private data, indexed by walk_id
+pub static WALKS_PRIVATE_KEY: &[u8] = b"walkspriv";
+pub static WALKS_PRIVATE: Keymap<u8, WalkPrivateData> = Keymap::new(WALKS_PRIVATE_KEY);
+
+// Struct for public walk data
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct WalkPublicData {
+    pub walk_id: u8,
     pub walk_name: String,
-    pub booking_date: String,
-    pub ticket_number: String,
-    pub starter_image: String,
-    pub evolution_stage: u8,
+    pub max_tickets: u32,
+    pub tickets_sold: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct PrivateWalkData {
-    pub gps_coordinates: Vec<(f64, f64)>, //This will store the coordinates
-    pub hints: Vec<String>,
-    pub badge_images: Vec<String>,
-    pub map_images: Vec<String>,
+pub struct WalkPrivateData {
+    pub checkpoints: HashMap<String, Checkpoint>,
+    pub checkpoint_hints: Vec<String>,
+    pub badge_images: Vec<String>, // In this case just a list of UUID svg layer names
+}
+
+// Struct for a single checkpoint's data
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct Checkpoint {
+    pub gps_coordinates: String,
+    pub hint: String,
+    pub extra: bool, // Whether or not this is a main checkpoint or an extra side trip
 }
 
 /// Token contract config
