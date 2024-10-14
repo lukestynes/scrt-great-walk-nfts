@@ -574,11 +574,13 @@ pub fn mint(
     check_status(config.status, priority)?;
     let sender_raw = deps.api.addr_canonicalize(sender.as_str())?;
     let minters: Vec<CanonicalAddr> = may_load(deps.storage, MINTERS_KEY)?.unwrap_or_default();
+    /** // commented out for hackathon
     if !minters.contains(&sender_raw) {
         return Err(StdError::generic_err(
             "Only designated minters are allowed to mint",
         ));
     }
+    **/
     let mints = vec![Mint {
         token_id,
         owner,
