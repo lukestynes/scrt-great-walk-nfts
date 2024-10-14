@@ -80,14 +80,14 @@ pub struct WalkPublicData {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct WalkPrivateData {
     pub checkpoints: HashMap<String, Checkpoint>,
-    pub checkpoint_hints: Vec<String>,
+    pub checkpoints_order: Vec<String>,
     pub badge_images: Vec<String>, // In this case just a list of UUID svg layer names
 }
 
 // Struct for a single checkpoint's data
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Checkpoint {
-    pub gps_coordinates: String,
+    pub gps_coordinates: Vec<f64>,
     pub hint: String,
     pub extra: bool, // Whether or not this is a main checkpoint or an extra side trip
 }
