@@ -1,5 +1,10 @@
 # Great Walk NFT Experience
 
+🚀 **Live Application**: You can explore the Great Walk NFT Experience [here](https://scrt-great-walk-nfts.vercel.app/).
+
+This project allows you to purchase NFT tickets for New Zealand's Great Walks, track your progress, and unlock achievements along the journey!
+(Note you will need a Keplr wallet on the Secret Network testnet to interact with the application.)
+
 ## Overview
 The Great Walks NFT Ticketing System is an innovative platform for managing walk reservations for popular trails through the power of NFTs. Users can mint NFTs as digital tickets representing their participation in a specific walk. These NFTs track progress along the trails, provide hints for upcoming checkpoints, and reward users with a digital badge upon completion of the walk.
 
