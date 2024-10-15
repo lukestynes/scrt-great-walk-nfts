@@ -23,7 +23,7 @@ const instantiateContract = async (
     name: "Great Walk NFT",
     symbol: "GWNFT",
     walk_name: "Routeburn Track",
-    max_tickets: 50,
+    max_tickets: 500,
     checkpoint_coords: [
       "44.8221, 168.1136",
       "44.7322, 168.1590",
