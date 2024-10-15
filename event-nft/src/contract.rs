@@ -105,7 +105,7 @@ pub fn instantiate(
         token_cnt: 0,
         status: ContractStatus::Normal.to_u8(),
         token_supply_is_public: init_config.public_token_supply.unwrap_or(false),
-        owner_is_public: init_config.public_owner.unwrap_or(false),
+        owner_is_public: init_config.public_owner.unwrap_or(true),
         sealed_metadata_is_enabled: init_config.enable_sealed_metadata.unwrap_or(false),
         unwrap_to_private: init_config.unwrapped_metadata_is_private.unwrap_or(false),
         minter_may_update_metadata: init_config.minter_may_update_metadata.unwrap_or(true),
@@ -175,6 +175,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             royalty_info,
             transferable,
             memo,
+            walk_date,
             ..
         } => mint(
             deps,
@@ -182,6 +183,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             &info.sender,
             &mut config,
             ContractStatus::Normal.to_u8(),
+            walk_date,
             token_id,
             owner,
             public_metadata,
@@ -651,6 +653,7 @@ pub fn mint(
     sender: &Addr,
     config: &mut Config,
     priority: u8,
+    walk_date: Option<String>,
     token_id: Option<String>,
     owner: Option<String>,
     public_metadata: Option<Metadata>,
@@ -662,15 +665,113 @@ pub fn mint(
 ) -> StdResult<Response> {
     check_status(config.status, priority)?;
     let sender_raw = deps.api.addr_canonicalize(sender.as_str())?;
-    let minters: Vec<CanonicalAddr> = may_load(deps.storage, MINTERS_KEY)?.unwrap_or_default();
-    if !minters.contains(&sender_raw) {
-        return Err(StdError::generic_err(
-            "Only designated minters are allowed to mint",
-        ));
+
+    // Let anyone mint
+    // let minters: Vec<CanonicalAddr> = may_load(deps.storage, MINTERS_KEY)?.unwrap_or_default();
+    // if !minters.contains(&sender_raw) {
+    //     return Err(StdError::generic_err(
+    //         "Only designated minters are allowed to mint",
+    //     ));
+    // }
+
+    // Validate or default the owner address
+    let owner_addr = if let Some(owner_str) = owner {
+        deps.api.addr_validate(&owner_str)?  // Validate the provided owner
+    } else {
+        sender.clone()  // If no owner is provided, use the sender as the owner
+    };
+
+    let tickets_sold = TICKETS_SOLD.load(deps.storage)?;
+    let max_tickets = MAX_TICKETS.load(deps.storage)?;
+    if tickets_sold >= max_tickets {
+        return Err(StdError::generic_err("All tickets have been sold for this walk."));
     }
+
+    let badge_image = BADGE_IMAGES.load(deps.storage)?[0].to_string();
+    let walk_name = WALK_NAME.load(deps.storage)?;
+    let checkpoint_names = CHECKPOINT_NAMES.load(deps.storage)?;
+    let checkpoint_hint = CHECKPOINT_HINTS.load(deps.storage)?[0].to_string();
+
+    let public_metadata = Some(Metadata {
+        token_uri: None,  
+        extension: Some(Extension {
+            image: Some(badge_image),
+            image_data: None,  
+            external_url: None,  
+            description: Some("This NFT represents a ticket for the Routeburn Track walk.".to_string()),  // Walk description
+            name: Some("Routeburn Trail NFT Ticket".to_string()),
+            attributes: Some(vec![
+                Trait {
+                    display_type: None,
+                    trait_type: Some("Walk Name".to_string()),
+                    value: walk_name,
+                    max_value: None,
+                },
+                Trait {
+                    display_type: Some("number".to_string()),
+                    trait_type: Some("Checkpoint Progress".to_string()),
+                    value: "0".to_string(),  // Indicating current checkpoint progress
+                    max_value: Some((checkpoint_names.len() - 1).to_string()),  
+                },
+                Trait {
+                    display_type: Some("date".to_string()),
+                    trait_type: Some("Walk Date".to_string()),
+                    value: walk_date.unwrap_or("2022-01-01".to_string()),  
+                    max_value: None,
+                },
+            ]),
+            background_color: Some("FFFFFF".to_string()),  
+            animation_url: None,
+            youtube_url: None,
+            media: None,
+            protected_attributes: None, 
+            token_subtype: Some("badge".to_string()),  
+        }),
+    });
+
+    let private_metadata = Some(Metadata {
+        token_uri: None,  
+        extension: Some(Extension {
+            image: None,  
+            image_data: None,
+            external_url: None,
+            description: Some("This metadata contains private checkpoint and progress data.".to_string()),
+            name: Some("Routeburn Track Private Data".to_string()),  // Name the private data for clarity
+            attributes: Some(vec![
+                Trait {
+                    display_type: None,
+                    trait_type: Some("Next Hint".to_string()),
+                    value: checkpoint_hint,  // Next hint
+                    max_value: None,
+                },
+                Trait {
+                    display_type: None,
+                    trait_type: Some("Next Checkpoint".to_string()),
+                    value: checkpoint_names[0].to_string(),
+                    max_value: None,
+                },
+                Trait {
+                    display_type: None,
+                    trait_type: Some("Completed Checkpoints".to_string()),
+                    value: "".to_string(), 
+                    max_value: None,
+                },
+            ]),
+            background_color: None,
+            animation_url: None,
+            youtube_url: None,
+            media: None,
+            protected_attributes: None,
+            token_subtype: Some("private_data".to_string()),  // Used to indicate private data
+        }),
+    });
+
+    let new_tickets_sold = tickets_sold + 1;
+    TICKETS_SOLD.save(deps.storage, &new_tickets_sold)?;
+
     let mints = vec![Mint {
         token_id,
-        owner,
+        owner: Some(owner_addr.to_string()),
         public_metadata,
         private_metadata,
         serial_number,
@@ -678,8 +779,10 @@ pub fn mint(
         transferable,
         memo,
     }];
+
     let mut minted = mint_list(deps, env, config, &sender_raw, mints)?;
     let minted_str = minted.pop().unwrap_or_default();
+
     Ok(Response::new()
         .add_attributes(vec![attr("minted", &minted_str)])
         .set_data(to_binary(&ExecuteAnswer::MintNft {
@@ -1998,11 +2101,25 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::WithPermit { permit, query } => permit_queries(deps, &env, permit, query),
         // QueryMsg::WalkName {} => query_walk_name(deps),
         // QueryMsg::WalkPublic { walk_name } => query_walk_public(deps, walk_name),
+        // TODO: Remove this before submission
         QueryMsg::WalkData {  } => query_walk_data(deps),
+        QueryMsg::WalkInfo {  } => query_walk_info(deps),
     };
     pad_query_result(response, BLOCK_SIZE)
 }
 
+pub fn query_walk_info(deps: Deps) -> StdResult<Binary> {
+    let walk_name = WALK_NAME.load(deps.storage)?;
+    let max_tickets = MAX_TICKETS.load(deps.storage)?;
+    let tickets_sold = TICKETS_SOLD.load(deps.storage)?;
+    Ok(to_binary(&QueryAnswer::WalkInfo { 
+        walk_name,
+        max_tickets,
+        tickets_sold,
+     })?)
+}
+
+// TODO: Remove this before submission
 pub fn query_walk_data(deps: Deps) -> StdResult<Binary> {
     let walk_name = WALK_NAME.load(deps.storage)?;
     let max_tickets = MAX_TICKETS.load(deps.storage)?;
@@ -2011,6 +2128,7 @@ pub fn query_walk_data(deps: Deps) -> StdResult<Binary> {
     let checkpoint_names = CHECKPOINT_NAMES.load(deps.storage)?;
     let checkpoint_hints  = CHECKPOINT_HINTS.load(deps.storage)?;
     let badge_images = BADGE_IMAGES.load(deps.storage)?;
+    let admin = ADMIN.load(deps.storage)?;
 
     Ok(to_binary(&QueryAnswer::WalkData { 
         walk_name,
@@ -2020,6 +2138,7 @@ pub fn query_walk_data(deps: Deps) -> StdResult<Binary> {
         checkpoint_names,
         checkpoint_hints,
         badge_images,
+        admin: admin.to_string(),
      })?)
 }
 
@@ -2789,8 +2908,28 @@ pub fn query_tokens(
     let owner_addr = deps.api.addr_validate(owner)?;
     let owner_raw = deps.api.addr_canonicalize(owner_addr.as_str())?;
     let cut_off = limit.unwrap_or(30);
+
+    let admin_addr = ADMIN.load(deps.storage)?;
+
+    // Determine if the querier is the admin
+    let is_admin = if let Some(viewer_addr) = viewer {
+        // Validate the viewer address
+        let validated_viewer = deps.api.addr_validate(viewer_addr)?;
+    
+        // Convert validated_viewer (Addr) to CanonicalAddr to compare with admin_addr (CanonicalAddr)
+        let validated_viewer_canonical = deps.api.addr_canonicalize(validated_viewer.as_str())?;
+    
+        // Compare the canonicalized viewer address with the admin address
+        validated_viewer_canonical == admin_addr
+    } else {
+        false
+    };
+
+
     // determine the querier
-    let (is_owner, may_querier) = if let Some(pmt) = from_permit.as_ref() {
+    let (is_owner, may_querier) =  if is_admin {
+        (true, Some(admin_addr))
+    } else if let Some(pmt) = from_permit.as_ref() {
         // permit tells you who is querying, so also check if he is the owner
         (owner_raw == *pmt, from_permit)
         // no permit, so check if a key was provided and who it matches
@@ -3325,30 +3464,30 @@ fn process_cw721_owner_of(
 ) -> StdResult<(Option<Addr>, Vec<Cw721Approval>, u32)> {
     let prep_info = query_token_prep(deps, token_id, viewer, from_permit)?;
     let opt_viewer = prep_info.viewer_raw.as_ref();
-    if check_permission(
+    // if check_permission(
+    //     deps,
+    //     block,
+    //     &prep_info.token,
+    //     token_id,
+    //     opt_viewer,
+    //     PermissionType::ViewOwner,
+    //     &mut Vec::new(),
+    //     &prep_info.err_msg,
+    //     prep_info.owner_is_public,
+    // )
+    // .is_ok()
+    // {
+    let (owner, mut approvals, mut operators) = get_owner_of_resp(
         deps,
         block,
         &prep_info.token,
-        token_id,
         opt_viewer,
-        PermissionType::ViewOwner,
-        &mut Vec::new(),
-        &prep_info.err_msg,
-        prep_info.owner_is_public,
-    )
-    .is_ok()
-    {
-        let (owner, mut approvals, mut operators) = get_owner_of_resp(
-            deps,
-            block,
-            &prep_info.token,
-            opt_viewer,
-            include_expired.unwrap_or(false),
-        )?;
-        approvals.append(&mut operators);
-        return Ok((Some(owner), approvals, prep_info.idx));
-    }
-    Ok((None, Vec::new(), prep_info.idx))
+        include_expired.unwrap_or(false),
+    )?;
+    approvals.append(&mut operators);
+    return Ok((Some(owner), approvals, prep_info.idx));
+    // }
+    // Ok((None, Vec::new(), prep_info.idx))
 }
 
 /// Returns StdResult<(Addr, Vec<Cw721Approval>, Vec<Cw721Approval>)>

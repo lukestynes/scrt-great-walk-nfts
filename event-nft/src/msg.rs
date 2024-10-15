@@ -130,6 +130,8 @@ pub enum ExecuteMsg {
         memo: Option<String>,
         /// optional message length padding
         padding: Option<String>,
+        /// the date the walk ticket starts
+        walk_date: Option<String>,
     },
     /// Mint multiple tokens
     BatchMintNft {
@@ -860,7 +862,9 @@ pub enum QueryMsg {
     },
     // WalkName {},
     // WalkPublic { walk_name: String },
+    //TODO: Remove this before submission.
     WalkData {},
+    WalkInfo {},
 }
 
 /// SNIP721 Approval
@@ -1034,6 +1038,7 @@ pub enum QueryAnswer {
     //     max_tickets: u32,
     //     tickets_sold: u32,
     // }
+    //TODO: Remove this before submission
     WalkData {
         walk_name: String,
         max_tickets: u32,
@@ -1042,7 +1047,13 @@ pub enum QueryAnswer {
         checkpoint_names: Vec<String>,
         checkpoint_hints: Vec<String>,
         badge_images: Vec<String>,
+        admin: String,
     },
+    WalkInfo {
+        walk_name: String,
+        max_tickets: u32,
+        tickets_sold: u32,
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema, Debug)]
