@@ -58,6 +58,12 @@ After that you need to install the dependencies:
 npm install
 ```
 
+After that you must build the pulsar-scripts. (Note if you change anything you must build them again after the change.):
+
+```bash
+npm run build
+```
+
 Then you can upload the contract:
 
 ```bash
@@ -86,7 +92,7 @@ Navigate to the `frontend` directory and install the dependencies:
 npm install
 ```
 
-Create a `.env.local` file in the `frontend` directory and add the following environment variables:
+Create a `.env` file in the `frontend` directory at `frontend/.env` and add the following environment variables:
 
 ```bash
 # These variables are exposed to the client.
