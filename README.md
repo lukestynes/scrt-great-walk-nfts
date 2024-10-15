@@ -56,7 +56,6 @@ This also means that only the owner of the token can see the current walk hints 
 - **Evolutionary NFTs:** The dynamic nature of the NFT makes it more engaging and valuable. The more effort a user puts into their hike, the more their NFT reflects it.
 - **User-Centric UX:** The platform design emphasizes ease of use, requiring minimal tech expertise to check in or track NFT evolution. The focus is on making the experience accessible for both seasoned NFT collectors and complete newcomers.
 
-
 ---
 
 ## License
