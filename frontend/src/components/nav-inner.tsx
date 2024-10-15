@@ -26,10 +26,6 @@ const navItemsAuth = [
     name: "Purchase",
     href: "/purchase",
   },
-  {
-    name: "Tickets",
-    href: "/tickets",
-  },
 ];
 
 const navItemsNoAuth = [
