@@ -15,6 +15,7 @@ import {
   Camera,
   Mountain,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function LandingPage() {
   return (
@@ -31,26 +32,21 @@ export default function LandingPage() {
               evolving NFTs as you progress. Turn your hiking adventure into a
               digital memory!
             </p>
-            <Button
-              size="lg"
-              className="bg-white text-blue-500 hover:bg-blue-100"
-            >
-              Purchase Your Ticket
-            </Button>
+            <Link href="/purchase">
+              <Button
+                size="lg"
+                className="bg-white text-blue-500 hover:bg-blue-100"
+              >
+                Purchase Your Ticket
+              </Button>
+            </Link>
           </div>
         </div>
         <div className="absolute inset-0 bg-black opacity-50"></div>
-        <Image
-          src="/placeholder.svg?height=1080&width=1920"
-          alt="New Zealand Great Walk landscape"
-          layout="fill"
-          objectFit="cover"
-          className="absolute inset-0 z-0"
-        />
       </section>
 
       {/* Features Section */}
-      <section className="bg-gray-50 py-20" id="about">
+      <section className="bg-gray-50 py-20 dark:bg-gray-900" id="about">
         <div className="container mx-auto px-4">
           <h2 className="mb-12 text-center text-3xl font-bold">How It Works</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
@@ -95,7 +91,7 @@ export default function LandingPage() {
       </section>
 
       {/* Unique Experience Section */}
-      <section className="bg-white py-20">
+      <section className="py-20">
         <div className="container mx-auto px-4">
           <h2 className="mb-12 text-center text-3xl font-bold">
             A Unique Hiking Experience
@@ -125,7 +121,7 @@ export default function LandingPage() {
       </section>
 
       {/* Who It's For Section */}
-      <section className="bg-gray-50 py-20">
+      <section className="bg-gray-50 py-20 dark:bg-gray-900">
         <div className="container mx-auto px-4">
           <h2 className="mb-12 text-center text-3xl font-bold">
             Who It&apos;s For
@@ -166,7 +162,7 @@ export default function LandingPage() {
       </section>
 
       {/* Available Great Walks Section */}
-      <section className="bg-white py-20" id="walks">
+      <section className="py-20" id="walks">
         <div className="container mx-auto px-4">
           <h2 className="mb-12 text-center text-3xl font-bold">
             Available Great Walks
@@ -179,7 +175,7 @@ export default function LandingPage() {
                   <CardTitle>{walk}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full">Learn More</Button>
+                  <Button className="w-full bg-green-600">Available!</Button>
                 </CardContent>
               </Card>
             ))}
@@ -216,13 +212,15 @@ export default function LandingPage() {
             Purchase your ticket now and begin your journey with a unique,
             evolving NFT!
           </p>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-white bg-transparent text-white hover:bg-white hover:text-blue-500"
-          >
-            Purchase Your Ticket
-          </Button>
+          <Link href="/purchase">
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white bg-transparent text-white hover:bg-white hover:text-blue-500"
+            >
+              Purchase Your Ticket
+            </Button>
+          </Link>
         </div>
       </section>
     </div>

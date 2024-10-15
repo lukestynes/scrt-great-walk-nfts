@@ -159,9 +159,6 @@ export default function NavInner({ isAuth }: { isAuth: boolean }) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-500" onClick={handleLogout}>
                 Logout
               </DropdownMenuItem>
