@@ -2287,10 +2287,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::RegisteredCodeHash { contract } => query_code_hash(deps, &contract),
         QueryMsg::WithPermit { permit, query } => permit_queries(deps, &env, permit, query),
-        // QueryMsg::WalkName {} => query_walk_name(deps),
-        // QueryMsg::WalkPublic { walk_name } => query_walk_public(deps, walk_name),
-        // TODO: Remove this before submission
-        QueryMsg::WalkData {} => query_walk_data(deps),
         QueryMsg::WalkInfo {} => query_walk_info(deps),
     };
     pad_query_result(response, BLOCK_SIZE)
@@ -2306,51 +2302,6 @@ pub fn query_walk_info(deps: Deps) -> StdResult<Binary> {
         tickets_sold,
     })?)
 }
-
-// TODO: Remove this before submission
-pub fn query_walk_data(deps: Deps) -> StdResult<Binary> {
-    let walk_name = WALK_NAME.load(deps.storage)?;
-    let max_tickets = MAX_TICKETS.load(deps.storage)?;
-    let tickets_sold = TICKETS_SOLD.load(deps.storage)?;
-    let checkpoint_coords = CHECKPOINT_COORDS.load(deps.storage)?;
-    let checkpoint_names = CHECKPOINT_NAMES.load(deps.storage)?;
-    let checkpoint_hints = CHECKPOINT_HINTS.load(deps.storage)?;
-    let badge_images = BADGE_IMAGES.load(deps.storage)?;
-    let admin = ADMIN.load(deps.storage)?;
-
-    Ok(to_binary(&QueryAnswer::WalkData {
-        walk_name,
-        max_tickets,
-        tickets_sold,
-        checkpoint_coords,
-        checkpoint_names,
-        checkpoint_hints,
-        badge_images,
-        admin: admin.to_string(),
-    })?)
-}
-
-// pub fn query_walk_public(deps: Deps, walk_name: String) -> StdResult<Binary> {
-//     let walk_public = WALKS_PUBLIC.get(deps.storage, &walk_name).ok_or_else(|| StdError::generic_err("Walk not found"))?;
-
-//     Ok(to_binary(&QueryAnswer::WalkPublic {
-//         walk_name: walk_public.walk_name,
-//         max_tickets: walk_public.max_tickets,
-//         tickets_sold: walk_public.tickets_sold,
-//      })?)
-// }
-
-// pub fn query_walk_name(deps: Deps) -> StdResult<Binary> {
-//     let walk_name = WALK_NAME.load(deps.storage)?;
-//
-//     Ok(to_binary(&QueryAnswer::WalkName { walk_name })?)
-// }
-//
-// // Define the response format
-// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-// pub struct WalkNameResponse {
-//     pub walk_name: String,
-// }
 
 /// Returns StdResult<Binary> from validating a permit and then using its creator's address when
 /// performing the specified query

@@ -859,10 +859,6 @@ pub enum QueryMsg {
         /// query to perform
         query: QueryWithPermit,
     },
-    // WalkName {},
-    // WalkPublic { walk_name: String },
-    //TODO: Remove this before submission.
-    WalkData {},
     WalkInfo {},
 }
 
@@ -1028,25 +1024,6 @@ pub enum QueryAnswer {
     },
     ContractCreator {
         creator: Option<Addr>,
-    },
-    // WalkName {
-    //     walk_name: String,
-    // },
-    // WalkPublic {
-    //     walk_name: String,
-    //     max_tickets: u32,
-    //     tickets_sold: u32,
-    // }
-    //TODO: Remove this before submission
-    WalkData {
-        walk_name: String,
-        max_tickets: u32,
-        tickets_sold: u32,
-        checkpoint_coords: Vec<String>,
-        checkpoint_names: Vec<String>,
-        checkpoint_hints: Vec<String>,
-        badge_images: Vec<String>,
-        admin: String,
     },
     WalkInfo {
         walk_name: String,
