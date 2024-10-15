@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Loader2, PartyPopper } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,9 +28,10 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { getSecretJsClient } from "@/app/utils/secretjs";
 import { SecretNetworkClient } from "secretjs";
 import { env } from "@/env";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
 
 const greatWalks = [
   { id: "routeburn", name: "Routeburn Track" },
@@ -75,11 +76,14 @@ export default function PurchaseTicketPage() {
   const [ticket, setTicket] = useState<Ticket>(defaultTicket);
   const [notAvailable, setNotAvailable] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
-  const [mintSuccess, setMintSuccess] = useState<string | null>(null);
-  const [mintError, setMintError] = useState<string | null>(null);
+  const [purchased, setPurchased] = useState(false);
 
   const handleSearch = async () => {
     if (!selectedWalk || !date) return;
+
+    setIsLoading(true);
+    setNotAvailable(false);
+    setTicket(defaultTicket);
 
     try {
       const response = await fetch("/api/scrt/walkinfo");
@@ -89,10 +93,7 @@ export default function PurchaseTicketPage() {
       }
 
       const data = (await response.json()) as WalkInfoResponse;
-
-      setIsLoading(true);
-      setNotAvailable(false);
-      setTicket(defaultTicket);
+      console.log("DATA", data);
 
       if (selectedWalk !== "routeburn") {
         setTimeout(() => {
@@ -123,8 +124,7 @@ export default function PurchaseTicketPage() {
 
   const handleMint = async () => {
     setIsMinting(true);
-    setMintSuccess(null);
-    setMintError(null);
+    setPurchased(false);
 
     try {
       if (!window.keplr) {
@@ -163,6 +163,7 @@ export default function PurchaseTicketPage() {
         {
           sender: walletAddress,
           contract_address: env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+          code_hash: env.NEXT_PUBLIC_CODE_HASH,
           msg: mintMsg,
           sent_funds: [],
         },
@@ -171,17 +172,16 @@ export default function PurchaseTicketPage() {
         },
       );
 
-      setMintSuccess(
-        `NFT minted successfully! Transaction Hash: ${tx.transactionHash}`,
-      );
-      toast("NFT minted succesfully!", {
+      toast("Ticket minted succesfully!", {
         description: `Transaction Hash: ${tx.transactionHash}`,
       });
+      setPurchased(true);
     } catch (error) {
       console.error("Error minting NFT:", error);
-      setMintError(
-        error.message || "An unexpected error occurred during minting",
-      );
+      toast.error("Something went wrong", {
+        description: `${error.message || "An unexpected error occured during minting"}`,
+      });
+      setPurchased(false);
     } finally {
       setIsMinting(false);
     }
@@ -270,7 +270,7 @@ export default function PurchaseTicketPage() {
               {ticket.ticketsSold} / {ticket.maxTickets}
             </p>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col">
             <Button
               onClick={handleMint}
               className="w-full"
@@ -285,25 +285,20 @@ export default function PurchaseTicketPage() {
                 "Purchase Ticket"
               )}
             </Button>
+            {purchased && (
+              <Alert className="mt-5">
+                <PartyPopper className="h-4 w-4" />
+                <AlertTitle>Success!</AlertTitle>
+                <AlertDescription>
+                  Ticket minted successfully! View it from your{" "}
+                  <Link href="/dashboard" className="hover:underline">
+                    dashboard
+                  </Link>
+                  .
+                </AlertDescription>
+              </Alert>
+            )}
           </CardFooter>
-        </Card>
-      )}
-
-      {mintSuccess && (
-        <Card className="mx-auto w-full max-w-md bg-green-100">
-          <CardHeader>
-            <CardTitle>Success</CardTitle>
-            <CardDescription>{mintSuccess}</CardDescription>
-          </CardHeader>
-        </Card>
-      )}
-
-      {mintError && (
-        <Card className="mx-auto w-full max-w-md bg-red-100">
-          <CardHeader>
-            <CardTitle>Minting Failed</CardTitle>
-            <CardDescription>{mintError}</CardDescription>
-          </CardHeader>
         </Card>
       )}
       {notAvailable && (

@@ -56,77 +56,84 @@ export default function MintPermitComponent() {
     setError(null);
     setTokens(null);
 
-    try {
-      // Enable Keplr and get wallet information
-      if (!window.keplr) {
-        alert("Please install the Keplr extension");
-        return;
-      }
-
-      await window.keplr.enable(env.NEXT_PUBLIC_CHAIN_ID);
-      const offlineSigner = window.getOfflineSigner(env.NEXT_PUBLIC_CHAIN_ID);
-      const accounts = await offlineSigner.getAccounts();
-      const walletAddress = accounts[0].address;
-
-      //
-      // const permit = await newPermit(
-      //   offlineSigner,
-      //   walletAddress,
-      //   env.NEXT_PUBLIC_CHAIN_ID,
-      //   "test permit",
-      //   [env.NEXT_PUBLIC_CONTRACT_ADDRESS],
-      //   ["owner"],
-      //   false,
-      // );
-      //
-      const tokens_query = {
-        nft_dossier: {
-          // owner: walletAddress,
-          token_id: "22",
-        },
-      };
-
-      // Manually create the permit payload
-
-      const secretjs = new SecretNetworkClient({
-        url: env.NEXT_PUBLIC_RPC_URL,
-        chainId: env.NEXT_PUBLIC_CHAIN_ID,
-        wallet: offlineSigner,
-        walletAddress: walletAddress,
-      });
-
-      const tokens = await secretjs.query.compute.queryContract({
-        contract_address: env.NEXT_PUBLIC_CONTRACT_ADDRESS,
-        query: tokens_query,
-      });
-      // lists all the tokens owned
-      console.log("TOKENS", tokens);
-
-      // // Send the permit and wallet address to the backend API
-      // const response = await fetch("/api/query-tokens", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({
-      //     permit,
-      //     walletAddress,
-      //     contractAddress: contract_address,
-      //   }),
-      // });
-      //
-      // const data = await response.json();
-      // if (response.ok) {
-      //   setTokens(data.tokens);
-      // } else {
-      //   setError(data.error);
-      // }
-    } catch (err) {
-      setError("Error fetching tokens or interacting with Keplr");
-      console.error(err);
-    } finally {
-      setLoading(false);
+    // Enable Keplr and get wallet information
+    if (!window.keplr) {
+      alert("Please install the Keplr extension");
+      return;
     }
+
+    await window.keplr.enable(env.NEXT_PUBLIC_CHAIN_ID);
+    const offlineSigner = window.getOfflineSigner(env.NEXT_PUBLIC_CHAIN_ID);
+    const accounts = await offlineSigner.getAccounts();
+    const walletAddress = accounts[0].address;
+
+    const permitName = "test permit"; // Set the permit name
+    const allowedTokens = [env.NEXT_PUBLIC_CONTRACT_ADDRESS]; // Set the allowed tokens or contract addresses
+    const permissions = ["owner"]; // Set the permissions (e.g., "owner" for NFTs)
+
+    const { signature } = await window.keplr.signAmino(
+      env.NEXT_PUBLIC_CHAIN_ID,
+      walletAddress,
+      {
+        chain_id: env.NEXT_PUBLIC_CHAIN_ID,
+        account_number: "0", // Must be 0
+        sequence: "0", // Must be 0
+        fee: {
+          amount: [{ denom: "uscrt", amount: "0" }], // Must be 0 uscrt
+          gas: "1", // Must be 1
+        },
+        msgs: [
+          {
+            type: "query_permit", // Must be "query_permit"
+            value: {
+              permit_name: permitName,
+              allowed_tokens: allowedTokens,
+              permissions: permissions,
+            },
+          },
+        ],
+        memo: "", // Must be empty
+      },
+      {
+        preferNoSetFee: true, // Fee must be 0, so hide it from the user
+        preferNoSetMemo: true, // Memo must be empty, so hide it from the user
+      },
+    );
+
+    const tokenId = "22"; // Replace with the actual token ID
+
+    const secretjs = new SecretNetworkClient({
+      url: env.NEXT_PUBLIC_RPC_URL,
+      chainId: env.NEXT_PUBLIC_CHAIN_ID,
+      wallet: offlineSigner,
+      walletAddress: walletAddress,
+    });
+
+    const { nft_dossier } = await secretjs.query.compute.queryContract({
+      contract_address: env.NEXT_PUBLIC_CONTRACT_ADDRESS, // The contract address where your NFT resides
+      code_hash: env.NEXT_PUBLIC_CODE_HASH, // The code hash of the contract
+      query: {
+        with_permit: {
+          query: {
+            nft_dossier: {
+              token_id: tokenId, // Query the nft_dossier by token ID
+            },
+          },
+          permit: {
+            params: {
+              permit_name: permitName,
+              allowed_tokens: allowedTokens,
+              chain_id: env.NEXT_PUBLIC_CHAIN_ID,
+              permissions: permissions,
+            },
+            signature: signature, // Pass the signature from the permit
+          },
+        },
+      },
+    });
+
+    // Log the NFT dossier data
+    console.log(nft_dossier);
   };
 
   return (

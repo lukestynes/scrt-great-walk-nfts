@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     const tokenIds = tokensQuery.token_list.tokens;
 
     if (tokenIds.length === 0) {
-      return NextResponse.json({ message: "No tickets found for this user" });
+      return NextResponse.json([]);
     }
 
     // Step 2: Fetch NFT details for each token

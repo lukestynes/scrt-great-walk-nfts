@@ -10,8 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [processing, setProcessing] = React.useState(false);
@@ -21,7 +23,14 @@ export default function LoginPage() {
     try {
       setProcessing(true);
       if (!window.keplr) {
-        alert("Please install the Keplr extension");
+        // alert("Please install the Keplr extension");
+        // return;
+        toast.error("You need to install the Keplr extension!", {
+          description: (
+            <Link href="https://www.keplr.app/">https://www.keplr.app/</Link>
+          ),
+        });
+        setProcessing(false);
         return;
       }
 
