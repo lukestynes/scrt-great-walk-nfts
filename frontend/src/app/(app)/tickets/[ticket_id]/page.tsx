@@ -281,7 +281,12 @@ export default function TicketDetailsPage({ params }: PageProps) {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex aspect-square items-center justify-center rounded-lg bg-muted">
-              <p className="text-muted-foreground">{nftData?.image}</p>
+              <Image
+                src={nftData?.image}
+                width="450"
+                height="450"
+                alt="Badge"
+              />
             </div>
             <p>
               <strong>Ticket ID:</strong> {ticket_id}

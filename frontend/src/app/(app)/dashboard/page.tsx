@@ -215,14 +215,13 @@ export default function DashboardPage() {
                   .map((ticket, index) => (
                     <div
                       key={index}
-                      className="flex aspect-square items-center justify-center rounded-lg bg-muted p-3"
+                      className="flex items-center justify-center rounded-lg bg-muted p-3"
                     >
                       <Image
                         src={ticket.image} // Assuming `ticket.image` contains the URL for the NFT image
                         alt={ticket.name}
-                        width={200}
-                        height={200}
-                        objectFit="cover"
+                        width={150}
+                        height={150}
                         className="h-full w-full rounded-lg object-cover"
                       />
                     </div>
