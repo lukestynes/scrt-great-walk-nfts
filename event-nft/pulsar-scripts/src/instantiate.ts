@@ -47,10 +47,10 @@ const instantiateContract = async (
       "",
     ],
     badge_images: [
-      "routeburn_shelter_badge.svg",
-      "falls_hut_badge.svg",
-      "lake_mackenzie_badge.svg",
-      "finished_badge.svg",
+      "/stage-1.png",
+      "/stage-2.png",
+      "/stage-3.png",
+      "/stage-4.png",
     ],
     entropy: "f8e1b2c1938d1c46b4f7079874",
     config: {
