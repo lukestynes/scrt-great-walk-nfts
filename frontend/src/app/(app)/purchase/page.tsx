@@ -197,11 +197,19 @@ export default function PurchaseTicketPage() {
             <SelectValue placeholder="Select a Great Walk" />
           </SelectTrigger>
           <SelectContent>
-            {greatWalks.map((walk) => (
-              <SelectItem key={walk.id} value={walk.id}>
-                {walk.name}
-              </SelectItem>
-            ))}
+            <SelectItem value="routeburn">Routeburn Track</SelectItem>
+            <SelectItem value="milford" disabled>
+              Milford Track
+            </SelectItem>
+            <SelectItem value="kepler" disabled>
+              Kepler Track
+            </SelectItem>
+            <SelectItem value="abel" disabled>
+              Abel Tasman Coast Track
+            </SelectItem>
+            <SelectItem value="tongariro" disabled>
+              Tongariro Northern Circuit
+            </SelectItem>
           </SelectContent>
         </Select>
 

@@ -1,18 +1,20 @@
 export type NftDossier = {
-  owner: string;
-  public_metadata: Metadata;
-  private_metadata: Metadata;
-  display_private_metadata_error: string | null;
-  royalty_info: RoyaltyInfo | null;
-  mint_run_info: MintRunInfo;
-  transferable: boolean;
-  unwrapped: boolean;
-  owner_is_public: boolean;
-  public_ownership_expiration: string;
-  private_metadata_is_public: boolean;
-  private_metadata_is_public_expiration: string | null;
-  token_approvals: Approval[];
-  inventory_approvals: Approval[];
+  nft_dossier: {
+    owner: string;
+    public_metadata: Metadata;
+    private_metadata: Metadata;
+    display_private_metadata_error: string | null;
+    royalty_info: RoyaltyInfo | null;
+    mint_run_info: MintRunInfo;
+    transferable: boolean;
+    unwrapped: boolean;
+    owner_is_public: boolean;
+    public_ownership_expiration: string;
+    private_metadata_is_public: boolean;
+    private_metadata_is_public_expiration: string | null;
+    token_approvals: Approval[];
+    inventory_approvals: Approval[];
+  };
 };
 
 type Metadata = {

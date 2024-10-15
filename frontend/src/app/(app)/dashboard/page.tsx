@@ -200,45 +200,42 @@ export default function DashboardPage() {
           <CardTitle>Your Completed Walks NFT&apos;s</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center gap-5">
-            {nftTickets?.some(
-              (ticket) => ticket.progress >= ticket.maxProgress,
-            ) ? (
-              nftTickets
-                .filter((ticket) => ticket.progress >= ticket.maxProgress) // Only completed walks
-                .map((ticket, index) => (
-                  <div
-                    key={index}
-                    className="flex aspect-square items-center justify-center rounded-lg bg-muted p-3"
-                  >
-                    <Image
-                      src={ticket.image} // Assuming `ticket.image` contains the URL for the NFT image
-                      alt={ticket.name}
-                      width={200}
-                      height={200}
-                      objectFit="cover"
-                      className="h-full w-full rounded-lg object-cover"
-                    />
-                  </div>
-                ))
-            ) : (
-              <div className="flex aspect-square items-center justify-center rounded-lg bg-muted p-3">
-                <p className="text-muted-foreground">Complete a walk first!</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Completed Walks NFT&apos;s</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center gap-5">
-            <div className="flex aspect-square items-center justify-center rounded-lg bg-muted p-3">
-              <p className="text-muted-foreground">Complete a walk first!</p>
+          {loading ? (
+            <div className="flex w-full justify-center">
+              <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+              <p>Loading</p>
             </div>
-          </div>
+          ) : (
+            <div className="flex justify-center gap-5 overflow-x-auto">
+              {nftTickets?.some(
+                (ticket) => ticket.progress >= ticket.maxProgress,
+              ) ? (
+                nftTickets
+                  .filter((ticket) => ticket.progress >= ticket.maxProgress) // Only completed walks
+                  .map((ticket, index) => (
+                    <div
+                      key={index}
+                      className="flex aspect-square items-center justify-center rounded-lg bg-muted p-3"
+                    >
+                      <Image
+                        src={ticket.image} // Assuming `ticket.image` contains the URL for the NFT image
+                        alt={ticket.name}
+                        width={200}
+                        height={200}
+                        objectFit="cover"
+                        className="h-full w-full rounded-lg object-cover"
+                      />
+                    </div>
+                  ))
+              ) : (
+                <div className="flex aspect-square items-center justify-center rounded-lg bg-muted p-3">
+                  <p className="text-muted-foreground">
+                    Complete a walk first!
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -12,7 +12,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Theater, Trophy } from "lucide-react";
+import { Loader2, MapPin, Theater, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { env } from "@/env";
@@ -56,6 +56,7 @@ const defaultTicket: TicketData = {
 export default function TicketDetailsPage({ params }: PageProps) {
   const [nftData, setNftData] = useState<TicketData>(defaultTicket);
   const [processing, setProcessing] = useState(false);
+  const [forceRefresh, setForceRefresh] = useState(false);
 
   const { ticket_id } = params;
 
@@ -139,7 +140,8 @@ export default function TicketDetailsPage({ params }: PageProps) {
         },
       });
 
-      const nft_dossier: NftDossier = response as NftDossier;
+      const nft_dossier_response: NftDossier = response as NftDossier;
+      const nft_dossier = nft_dossier_response.nft_dossier;
 
       // Log the NFT dossier data
       console.log(nft_dossier);
@@ -195,7 +197,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
     };
 
     void getDossier();
-  }, [ticket_id]);
+  }, [forceRefresh]);
 
   const handleAdvance = async () => {
     setProcessing(true);
@@ -257,6 +259,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
       description: "You have advanced to the next checkpoint! 🎉",
     });
     setProcessing(false);
+    setForceRefresh(!forceRefresh);
     return tx.transactionHash; // Return the transaction hash on success
   };
 
@@ -333,6 +336,9 @@ export default function TicketDetailsPage({ params }: PageProps) {
                       onClick={handleAdvance}
                       disabled={processing}
                     >
+                      {processing && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
                       Check In
                     </Button>
                   )}
