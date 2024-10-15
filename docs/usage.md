@@ -1,4 +1,4 @@
-## Usage Documentation
+# Usage Documentation
 
 ### 1. Logging In
 

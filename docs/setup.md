@@ -1,4 +1,4 @@
-## Setup Instructions
+# Setup Instructions
 
 This section provides instructions on how to set up the Great Walk NFT Experience project on your local machine. You will need to deploy the smart contract to the Secret Network, set up the frontend, and interact with the contract using the Keplr wallet.
 
@@ -12,6 +12,10 @@ Before you begin, ensure you have the following installed on your local machine:
 - **Keplr Wallet** (installed in your browser for interacting with the Secret Network)
 - **Secret Network Testnet account** (for testing the contract interactions)
 - **Git** (for cloning the repository)
+- **GNU Make**: Make sure you have GNU Make installed. On most Unix-based systems, it's pre-installed, but you can install it with the following:
+  - **Linux (Ubuntu/Debian)**: `sudo apt install make`
+  - **macOS**: Make is included with Xcode Command Line Tools. You can install it using: `xcode-select --install`
+  - **Windows**: You can install Make through [MinGW](http://www.mingw.org/) or [Cygwin](https://www.cygwin.com/).
 
 ### 1. Clone the Repository
 

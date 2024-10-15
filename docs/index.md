@@ -15,6 +15,9 @@ Just make sure your wallet is on the Keplr Testnet!
 
 - [Setup Instructions](./setup.md)
 - [Usage Guidelines](usage.md)
+- [Hackathon Notes](hackathon-notes.md)
 - [Additional Information](additional-info.md)
+
+Please have a flick through of the Hackathon Notes for some specific things to note about this project in the context of the hackathon.
 
 Click the links above to navigate through the documentation.
