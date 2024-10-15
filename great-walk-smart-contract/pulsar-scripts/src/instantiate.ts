@@ -19,15 +19,6 @@ const instantiateContract = async (
   codeId: string,
   contractCodeHash: string,
 ): Promise<string> => {
-  // const initMsg = {
-  //     name: "Critter NFT",
-  //     symbol: "CRITTER",
-  //     entropy: crypto.randomBytes(20).toString('hex'),
-  //     config: {
-  //         public_token_supply: true,
-  //     },
-  // };
-
   const initMsg = {
     name: "Great Walk NFT",
     symbol: "GWNFT",
@@ -66,7 +57,7 @@ const instantiateContract = async (
       sender: wallet.address,
       code_hash: contractCodeHash,
       init_msg: initMsg,
-      label: "test contract" + Math.ceil(Math.random() * 10000000),
+      label: "Great Walk Contract" + Math.ceil(Math.random() * 10000000),
     },
     {
       gasLimit: 400_000,
