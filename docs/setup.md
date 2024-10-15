@@ -29,6 +29,14 @@ cd great-walks-nft
 ### 2. Setup Smart Contracts
 You first need to build the smart contract to wasm and compress it. Navigate to the `great-walk-smart-contract` directory and run the following:
 
+Run this first to install and build everything:
+
+```bash
+cargo build
+```
+
+Then run the following to compile the contract to wasm and compress it:
+
 ```bash
 make compile-optimized-reproducible
 ```
@@ -38,7 +46,7 @@ This will create a `contract.wasm.gz` file in the `great-walk-smart-contract/art
 ### 3. Upload the Contract
 You can deploy the contract to the Secret Network using the included pulsar-scripts. Navigate to the `pulsar-scripts` directory and run the following:
 
-Make sure you create a `.env` file first, in here you need to put your keplr wallet mnemonic.
+Make sure you create a `.env` file first, in here you need to put your keplr wallet mnemonic. This `.env` file should be in `pulsar-script/.env`.
 
 ```bash
 MNEMONIC="<Your Keplr Wallet Mnemonic>"
