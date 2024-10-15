@@ -154,7 +154,7 @@ export default function PurchaseTicketPage() {
           royalty_info: null,
           transferable: true,
           memo: "",
-          walk_date: format(new Date(date ?? ""), "MMMM d, yy"),
+          walk_date: format(new Date(date ?? ""), "MMMM d, yyyy"),
         },
       };
 

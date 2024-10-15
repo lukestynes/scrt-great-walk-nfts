@@ -16,7 +16,7 @@ async function getNFTInfo(tokenId: string) {
         nft_info: { token_id: tokenId },
       },
     });
-    return query;
+    return { token_id: tokenId, nft_info: query };
   } catch (error) {
     console.error(`Error fetching info for token ID: ${tokenId}`, error);
     throw new Error(`Failed to fetch info for token ${tokenId}`);

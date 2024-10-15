@@ -54,7 +54,7 @@ export default function DashboardPage() {
           throw new Error(data.error || "Failed to fetch NFTs");
         }
         const tickets = data.map((ticketData) => {
-          const attributes = ticketData.nft_info.extension.attributes;
+          const attributes = ticketData.nft_info.nft_info.extension.attributes;
           const walkName = attributes.find(
             (attr) => attr.trait_type === "Walk Name",
           )?.value;
@@ -73,6 +73,7 @@ export default function DashboardPage() {
             walkDate,
             progress,
             maxProgress,
+            token_id: ticketData.token_id,
           };
         });
 
@@ -156,7 +157,10 @@ export default function DashboardPage() {
                   .map((ticket, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <Link href="" className="hover:underline">
+                        <Link
+                          href={`/tickets/${ticket.token_id}`}
+                          className="hover:underline"
+                        >
                           {ticket.walkName}
                         </Link>
                       </TableCell>
