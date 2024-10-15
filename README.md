@@ -1,5 +1,8 @@
 # Great Walk NFT Experience
 
+## Overview
+The Great Walks NFT Ticketing System is an innovative platform for managing walk reservations for popular trails through the power of NFTs. Users can mint NFTs as digital tickets representing their participation in a specific walk. These NFTs track progress along the trails, provide hints for upcoming checkpoints, and reward users with a digital badge upon completion of the walk.
+
 ## User-Focused Summary
 
 The **Great Walk NFT Experience** is an interactive way to engage with New Zealand’s iconic Great Walks. Upon purchasing a ticket for a walk, you receive a unique **NFT** that evolves as you progress through your journey. As you check in at huts or specific points along the walk, your NFT updates to reflect your progress, ultimately becoming a **badge of completion** that represents your adventure and accomplishments.
@@ -32,12 +35,13 @@ We’re entering the intersection of **outdoor adventure** and **digital collect
 
 ## Development Deep Dive
 
-The project is built on **Secret Network** for privacy-preserving NFTs, ensuring that while users can publicly showcase their achievements, their data and personal location information are handled securely and privately.
+The project is built on **Secret Network** for privacy-preserving NFTs, ensuring that while users can publicly showcase their achievements, their data and information are handled securely and privately.
+This also means that only the owner of the token can see the current walk hints and locations, and even the owner can't see the future hints and locations, all thanks to SecretNetwork.
 
 ### Technologies Used
 
 - **Secret Network:** For secure, privacy-preserving NFTs.
-- **React/Next.js:** The frontend is built using a modern web stack to provide a seamless user experience.
+- **React/Next.js:** The frontend is built using a modern web stack to provide a seamless user experience, deployed on Vercel.
 - **Smart Contracts:** Smart contracts on Secret Network are used to manage NFT minting, evolution, and location-based updates.
 
 ### Contracts and Interactions
@@ -52,13 +56,6 @@ The project is built on **Secret Network** for privacy-preserving NFTs, ensuring
 - **Evolutionary NFTs:** The dynamic nature of the NFT makes it more engaging and valuable. The more effort a user puts into their hike, the more their NFT reflects it.
 - **User-Centric UX:** The platform design emphasizes ease of use, requiring minimal tech expertise to check in or track NFT evolution. The focus is on making the experience accessible for both seasoned NFT collectors and complete newcomers.
 
-### TODOs
-
-- Fill in the details of the exact Great Walks and locations that will trigger NFT updates.
-- Finalize the smart contract specifications and include the details here for minting and evolving the NFTs.
-- Expand the user journey with visual examples of how the NFTs evolve.
-- Provide examples or screenshots of the frontend interface for checking in during the walk.
-- Add any additional security measures or privacy choices made during development.
 
 ---
 
@@ -68,4 +65,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Contributors
 
-- TODO: Add your name and the names of any collaborators.
+- [Luke Stynes](https://www.github.com/lukestynes)
