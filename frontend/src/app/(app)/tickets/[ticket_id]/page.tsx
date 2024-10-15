@@ -16,9 +16,10 @@ import { MapPin, Theater, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { env } from "@/env";
-import { SecretNetworkClient } from "secretjs";
+import { SecretNetworkClient, TxResultCode } from "secretjs";
 import CheckpointsDisplay from "@/components/checkpoint-display";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { NftDossier } from "@/types/nft-dossier";
 
 // Placeholder data
 
@@ -115,7 +116,7 @@ export default function TicketDetailsPage({ params }: PageProps) {
         walletAddress: walletAddress,
       });
 
-      const { nft_dossier } = await secretjs.query.compute.queryContract({
+      const response = await secretjs.query.compute.queryContract({
         contract_address: env.NEXT_PUBLIC_CONTRACT_ADDRESS, // The contract address where your NFT resides
         code_hash: env.NEXT_PUBLIC_CODE_HASH, // The code hash of the contract
         query: {
@@ -137,6 +138,8 @@ export default function TicketDetailsPage({ params }: PageProps) {
           },
         },
       });
+
+      const nft_dossier: NftDossier = response as NftDossier;
 
       // Log the NFT dossier data
       console.log(nft_dossier);
@@ -241,8 +244,11 @@ export default function TicketDetailsPage({ params }: PageProps) {
     );
 
     // Check for success
-    if (tx.code !== 0) {
-      throw new Error(`Failed to advance token: ${tx.rawLog}`);
+    if (tx.code !== TxResultCode.Success) {
+      toast.error("Failed to advance token.", {
+        description: `Error: ${tx.rawLog}`,
+      });
+      setProcessing(false);
     }
 
     console.log("Success! Token advanced:", tx.transactionHash);

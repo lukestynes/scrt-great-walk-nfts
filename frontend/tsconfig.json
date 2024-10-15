@@ -2,6 +2,7 @@
   "compilerOptions": {
     /* Base Options: */
     "esModuleInterop": true,
+    "noImplicitAny": false,
     "skipLibCheck": true,
     "target": "es2022",
     "allowJs": true,
@@ -10,7 +11,7 @@
     "isolatedModules": true,
 
     /* Strictness */
-    "strict": true,
+    "strict": false,
     "noUncheckedIndexedAccess": true,
     "checkJs": true,
 

@@ -201,8 +201,7 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="flex justify-center gap-5">
-            {nftTickets &&
-            nftTickets.some(
+            {nftTickets?.some(
               (ticket) => ticket.progress >= ticket.maxProgress,
             ) ? (
               nftTickets
