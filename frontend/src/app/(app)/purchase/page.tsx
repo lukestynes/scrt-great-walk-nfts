@@ -27,6 +27,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { getSecretJsClient } from "@/app/utils/secretjs";
+import { SecretNetworkClient } from "secretjs";
+import { env } from "@/env";
 
 const greatWalks = [
   { id: "routeburn", name: "Routeburn Track" },
@@ -42,6 +46,8 @@ type Ticket = {
   startDate: Date;
   price: number;
   duration: number;
+  ticketsSold: number;
+  maxTickets: number;
 };
 
 const defaultTicket = {
@@ -50,6 +56,16 @@ const defaultTicket = {
   startDate: new Date(),
   price: 0,
   duration: 0,
+  ticketsSold: 0,
+  maxTickets: 0,
+};
+
+type WalkInfoResponse = {
+  walk_info: {
+    walk_name: string;
+    max_tickets: number;
+    tickets_sold: number;
+  };
 };
 
 export default function PurchaseTicketPage() {
@@ -58,33 +74,116 @@ export default function PurchaseTicketPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [ticket, setTicket] = useState<Ticket>(defaultTicket);
   const [notAvailable, setNotAvailable] = useState(false);
+  const [isMinting, setIsMinting] = useState(false);
+  const [mintSuccess, setMintSuccess] = useState<string | null>(null);
+  const [mintError, setMintError] = useState<string | null>(null);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!selectedWalk || !date) return;
 
-    setIsLoading(true);
-    setNotAvailable(false);
-    setTicket(defaultTicket);
+    try {
+      const response = await fetch("/api/scrt/walkinfo");
 
-    if (selectedWalk !== "routeburn") {
-      setTimeout(() => {
-        setNotAvailable(true);
-        setIsLoading(false);
-      }, 1500);
-    } else {
-      // Simulate API call
-      setTimeout(() => {
-        setTicket({
-          id: Math.random().toString(36).substr(2, 9),
-          walkName:
-            greatWalks.find((walk) => walk.id === selectedWalk)?.name ?? "",
-          startDate: date,
-          price: Math.floor(Math.random() * (300 - 100 + 1) + 100),
-          duration: Math.floor(Math.random() * (7 - 3 + 1) + 3),
-        });
-        setNotAvailable(false);
-        setIsLoading(false);
-      }, 1500);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = (await response.json()) as WalkInfoResponse;
+
+      setIsLoading(true);
+      setNotAvailable(false);
+      setTicket(defaultTicket);
+
+      if (selectedWalk !== "routeburn") {
+        setTimeout(() => {
+          setNotAvailable(true);
+          setIsLoading(false);
+        }, 1500);
+      } else {
+        // Simulate API call
+        setTimeout(() => {
+          setTicket({
+            id: Math.random().toString(36).substr(2, 9),
+            walkName:
+              greatWalks.find((walk) => walk.id === selectedWalk)?.name ?? "",
+            startDate: date,
+            price: Math.floor(Math.random() * (300 - 100 + 1) + 100),
+            duration: Math.floor(Math.random() * (7 - 3 + 1) + 3),
+            ticketsSold: data.walk_info.tickets_sold,
+            maxTickets: data.walk_info.max_tickets,
+          });
+          setNotAvailable(false);
+          setIsLoading(false);
+        }, 1500);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleMint = async () => {
+    setIsMinting(true);
+    setMintSuccess(null);
+    setMintError(null);
+
+    try {
+      if (!window.keplr) {
+        alert("Please install the Keplr extension");
+        return;
+      }
+
+      await window.keplr.enable(env.NEXT_PUBLIC_CHAIN_ID);
+
+      const offlineSigner = window.keplr.getOfflineSigner(
+        env.NEXT_PUBLIC_CHAIN_ID,
+      );
+      const accounts = await offlineSigner.getAccounts();
+      const walletAddress = accounts[0].address;
+
+      const secretjs = new SecretNetworkClient({
+        url: env.NEXT_PUBLIC_RPC_URL,
+        chainId: env.NEXT_PUBLIC_CHAIN_ID,
+        wallet: offlineSigner,
+        walletAddress: walletAddress,
+      });
+
+      const mintMsg = {
+        mint_nft: {
+          token_id: ticket.id,
+          serial_number: null,
+          royalty_info: null,
+          transferable: true,
+          memo: "",
+          walk_date: format(new Date(date ?? ""), "MMMM d, yy"),
+        },
+      };
+
+      // Mint the thing
+      const tx = await secretjs.tx.compute.executeContract(
+        {
+          sender: walletAddress,
+          contract_address: env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+          msg: mintMsg,
+          sent_funds: [],
+        },
+        {
+          gasLimit: 600_000,
+        },
+      );
+
+      setMintSuccess(
+        `NFT minted successfully! Transaction Hash: ${tx.transactionHash}`,
+      );
+      toast("NFT minted succesfully!", {
+        description: `Transaction Hash: ${tx.transactionHash}`,
+      });
+    } catch (error) {
+      console.error("Error minting NFT:", error);
+      setMintError(
+        error.message || "An unexpected error occurred during minting",
+      );
+    } finally {
+      setIsMinting(false);
     }
   };
 
@@ -165,10 +264,46 @@ export default function PurchaseTicketPage() {
             <p>
               <strong>Price:</strong> ${ticket.price}
             </p>
+
+            <p>
+              <strong>Tickets Sold: </strong>
+              {ticket.ticketsSold} / {ticket.maxTickets}
+            </p>
           </CardContent>
           <CardFooter>
-            <Button className="w-full">Purchase Ticket</Button>
+            <Button
+              onClick={handleMint}
+              className="w-full"
+              disabled={isMinting || !ticket.id}
+            >
+              {isMinting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Minting...
+                </>
+              ) : (
+                "Purchase Ticket"
+              )}
+            </Button>
           </CardFooter>
+        </Card>
+      )}
+
+      {mintSuccess && (
+        <Card className="mx-auto w-full max-w-md bg-green-100">
+          <CardHeader>
+            <CardTitle>Success</CardTitle>
+            <CardDescription>{mintSuccess}</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {mintError && (
+        <Card className="mx-auto w-full max-w-md bg-red-100">
+          <CardHeader>
+            <CardTitle>Minting Failed</CardTitle>
+            <CardDescription>{mintError}</CardDescription>
+          </CardHeader>
         </Card>
       )}
       {notAvailable && (

@@ -31,7 +31,10 @@ export default function LoginPage() {
       const offlineSigner = window.keplr.getOfflineSigner("secret-4");
       const accounts = await offlineSigner.getAccounts();
 
+      console.log("WALLET: ", offlineSigner);
+
       const address = accounts[0]?.address;
+      console.log("ADDRESS: ", address);
 
       const response = await fetch("/api/auth/login", {
         method: "POST",

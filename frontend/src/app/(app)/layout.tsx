@@ -5,6 +5,7 @@ import "@/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "App | Great Walk NFT Experience",
@@ -26,6 +27,7 @@ export default function RootLayout({
         >
           <Navbar />
           <div className="flex-grow">{children}</div>
+          <Toaster />
           <Footer />
         </ThemeProvider>
       </body>

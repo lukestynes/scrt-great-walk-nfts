@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 type WalletRequest = {
+  wallet;
   walletAddress: string;
 };
 

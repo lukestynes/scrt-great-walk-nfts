@@ -8,6 +8,7 @@ export const env = createEnv({
    */
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
+    ADMIN_MNEMONIC: z.string(),
   },
 
   /**
@@ -17,6 +18,11 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_RPC_URL: z.string(),
+    NEXT_PUBLIC_CHAIN_ID: z.string(),
+    NEXT_PUBLIC_CONTRACT_ADDRESS: z.string(),
+    NEXT_PUBLIC_CODE_HASH: z.string(),
+    NEXT_PUBLIC_ADMIN_WALLET: z.string(),
   },
 
   /**
@@ -25,6 +31,12 @@ export const env = createEnv({
    */
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
+    NEXT_PUBLIC_RPC_URL: process.env.NEXT_PUBLIC_RPC_URL,
+    NEXT_PUBLIC_CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID,
+    NEXT_PUBLIC_CONTRACT_ADDRESS: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+    NEXT_PUBLIC_CODE_HASH: process.env.NEXT_PUBLIC_CODE_HASH,
+    NEXT_PUBLIC_ADMIN_WALLET: process.env.NEXT_PUBLIC_ADMIN_WALLET,
+    ADMIN_MNEMONIC: process.env.ADMIN_MNEMONIC,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
