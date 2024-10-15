@@ -1,6 +1,5 @@
 #![allow(clippy::large_enum_variant)]
 
-
 use cosmwasm_std::{Addr, Binary, Coin};
 use schemars::JsonSchema;
 use secret_toolkit::permit::Permit;
@@ -420,15 +419,9 @@ pub enum ExecuteMsg {
         // add whatever params you want like location
         some_data: String,
     },
-    // **** Hackathon END
-    // AddWalk {
-    //     walk_name: String,
-    //     max_tickets: u32,
-    //     required_checkpoints: HashMap<String, Checkpoint>,
-    //     optional_checkpoints: HashMap<String, Checkpoint>,
-    //     checkpoint_order: Vec<String>,
-    //     badge_images: Vec<String>,
-    // },
+    AdvanceToken {
+        token_id: String,
+    },
 }
 
 /// permission access level
@@ -711,7 +704,9 @@ pub enum QueryMsg {
         include_expired: Option<bool>,
     },
     /// displays the public metadata of a token
-    NftInfo { token_id: String },
+    NftInfo {
+        token_id: String,
+    },
     /// displays all the information contained in the OwnerOf and NftInfo queries
     AllNftInfo {
         token_id: String,
@@ -808,9 +803,13 @@ pub enum QueryMsg {
         viewing_key: Option<String>,
     },
     /// display if a token is unwrapped
-    IsUnwrapped { token_id: String },
+    IsUnwrapped {
+        token_id: String,
+    },
     /// display if a token is transferable
-    IsTransferable { token_id: String },
+    IsTransferable {
+        token_id: String,
+    },
     /// display that this contract implements non-transferable tokens
     ImplementsNonTransferableTokens {},
     /// display that this contract implements the use of the `token_subtype` metadata extension field
@@ -1053,7 +1052,7 @@ pub enum QueryAnswer {
         walk_name: String,
         max_tickets: u32,
         tickets_sold: u32,
-    }
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema, Debug)]

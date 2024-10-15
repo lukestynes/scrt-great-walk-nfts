@@ -1,6 +1,9 @@
 /// This contract implements SNIP-721 standard:
 /// https://github.com/SecretFoundation/SNIPs/blob/master/SNIP-721.md
-use std::{char::MAX, collections::{HashMap, HashSet}};
+use std::{
+    char::MAX,
+    collections::{HashMap, HashSet},
+};
 
 use base64::{engine::general_purpose, Engine as _};
 use cosmwasm_std::{
@@ -19,7 +22,7 @@ use secret_toolkit::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{mint_run::{SerialNumber, StoredMintRunInfo}, state::{ADMIN, BADGE_IMAGES, CHECKPOINT_COORDS, CHECKPOINT_HINTS, CHECKPOINT_NAMES, MAX_TICKETS, TICKETS_SOLD, WALK_NAME}};
+use crate::inventory::{Inventory, InventoryIter};
 use crate::msg::{
     AccessLevel, BatchNftDossierElement, Burn, ContractStatus, Cw721Approval, Cw721OwnerOfResponse,
     ExecuteAnswer, ExecuteMsg, InstantiateMsg, Mint, QueryAnswer, QueryMsg, QueryWithPermit,
@@ -41,7 +44,11 @@ use crate::{
     token::{Extension, Trait},
 };
 use crate::{
-    inventory::{Inventory, InventoryIter},
+    mint_run::{SerialNumber, StoredMintRunInfo},
+    state::{
+        ADMIN, BADGE_IMAGES, CHECKPOINT_COORDS, CHECKPOINT_HINTS, CHECKPOINT_NAMES, MAX_TICKETS,
+        TICKETS_SOLD, WALK_NAME,
+    },
 };
 
 /// pad handle responses and log attributes to blocks of 256 bytes to prevent leaking info based on
@@ -502,27 +509,202 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             ContractStatus::Normal.to_u8(),
             token_id,
             some_data,
-        ), // **** Hackathon END
-        // ExecuteMsg::AddWalk {
-        //     walk_name,
-        //     max_tickets,
-        //     // required_checkpoints,
-        //     // optional_checkpoints,
-        //     checkpoint_order,
-        //     badge_images,
-        //     ..
-        // } => add_walk(
-        //     deps,
-        //     info,
-        //     walk_name,
-        //     max_tickets,
-        //     // required_checkpoints,
-        //     // optional_checkpoints,
-        //     checkpoint_order,
-        //     badge_images,
-        // )
+        ),
+        ExecuteMsg::AdvanceToken { token_id } => advance_token(
+            deps,
+            &env,
+            &info.sender,
+            &mut config,
+            ContractStatus::Normal.to_u8(),
+            token_id,
+        ),
     };
     pad_handle_result(response, BLOCK_SIZE)
+}
+
+pub fn advance_token(
+    deps: DepsMut,
+    env: &Env,
+    sender: &Addr,
+    config: &mut Config,
+    priority: u8,
+    token_id: String,
+) -> StdResult<Response> {
+    check_status(config.status, priority)?;
+    let sender_raw = deps.api.addr_canonicalize(sender.as_str())?;
+
+    let custom_err = format!("Not authorized for token {}", token_id);
+    // if token supply is private, don't leak that the token id does not exist
+    // instead just say they are not authorized for that token
+    let opt_err = if config.token_supply_is_public {
+        None
+    } else {
+        Some(&*custom_err)
+    };
+
+    let (token, idx) = get_token(deps.storage, token_id.as_str(), opt_err)?;
+    if sender_raw != token.owner {
+        return Err(StdError::generic_err(custom_err));
+    }
+
+    // read the public metadata (?)
+    let mut pub_meta_store = PrefixedStorage::new(deps.storage, PREFIX_PUB_META);
+    let mut pub_meta: Metadata =
+        may_load(&pub_meta_store, &idx.to_le_bytes())?.unwrap_or(Metadata {
+            token_uri: None,
+            extension: None,
+        });
+
+    // read the private metadata
+    let mut priv_meta_store = PrefixedStorage::new(deps.storage, PREFIX_PRIV_META);
+    let mut priv_meta: Metadata =
+        may_load(&priv_meta_store, &idx.to_le_bytes())?.unwrap_or(Metadata {
+            token_uri: None,
+            extension: None,
+        });
+
+    let mut public_extension = pub_meta.extension.unwrap();
+    let mut public_attributes = public_extension.attributes.unwrap();
+
+    // Find the "Checkpoint Progress" attribute
+    let checkpoint_progress = public_attributes
+        .iter_mut()
+        .find(|attr| attr.trait_type.as_deref() == Some("Checkpoint Progress"));
+
+    if let Some(checkpoint_progress) = checkpoint_progress {
+        // Parse the current progress value
+        let current_progress: u32 = checkpoint_progress.value.parse().map_err(|_| {
+            StdError::generic_err("Unable to parse Checkpoint Progress value as a number")
+        })?;
+
+        // Parse the max progress value
+        let max_progress: u32 = checkpoint_progress
+            .max_value
+            .as_deref()
+            .unwrap_or("0")
+            .parse()
+            .map_err(|_| {
+                StdError::generic_err("Unable to parse Checkpoint Progress max_value as a number")
+            })?;
+
+        // Check if the current progress is already at or above the max
+        if current_progress >= max_progress {
+            return Err(StdError::generic_err("Token is already fully advanced"));
+        }
+
+        // Proceed with advancing the token's progress
+        let new_progress = current_progress + 1;
+        checkpoint_progress.value = new_progress.to_string(); // Update the value
+
+        // Update the image
+        let badge_images = BADGE_IMAGES.load(deps.storage)?;
+
+        // Ensure new_progress is within bounds (using usize)
+        if (new_progress as usize) > badge_images.len() {
+            return Err(StdError::generic_err(
+                "Progress exceeds available badge images",
+            ));
+        }
+        let new_image = badge_images[new_progress as usize].to_string();
+
+        // Re-assign the updated attributes back to the public extension
+        pub_meta.extension = Some(Extension {
+            image: Some(new_image),
+            image_data: public_extension.image_data,
+            external_url: public_extension.external_url,
+            description: public_extension.description,
+            name: public_extension.name,
+            attributes: Some(public_attributes), // Use the modified attributes
+            background_color: public_extension.background_color,
+            animation_url: public_extension.animation_url,
+            youtube_url: public_extension.youtube_url,
+            media: public_extension.media,
+            protected_attributes: public_extension.protected_attributes,
+            token_subtype: public_extension.token_subtype,
+        });
+
+        set_metadata_impl(deps.storage, &token, idx, PREFIX_PUB_META, &pub_meta)?;
+
+        // Also update the private data
+        // Assuming you have `priv_meta` with private metadata loaded
+        let mut private_extension = priv_meta.extension.unwrap();
+        let mut private_attributes = private_extension.attributes.unwrap();
+
+        // Find and update the "Next Checkpoint" attribute
+        let next_checkpoint = private_attributes
+            .iter_mut()
+            .find(|attr| attr.trait_type.as_deref() == Some("Next Checkpoint"));
+
+        if let Some(next_checkpoint) = next_checkpoint {
+            // Update the next checkpoint
+            let checkpoint_names = CHECKPOINT_NAMES.load(deps.storage)?;
+
+            // Ensure new_progress is within bounds (using usize)
+            if (new_progress as usize) > checkpoint_names.len() {
+                return Err(StdError::generic_err(
+                    "Progress exceeds available checkpoint names",
+                ));
+            }
+            next_checkpoint.value = checkpoint_names[new_progress as usize].to_string();
+        }
+
+        // Find and update the "Next Hint" attribute
+        let next_hint = private_attributes
+            .iter_mut()
+            .find(|attr| attr.trait_type.as_deref() == Some("Next Hint"));
+        if let Some(next_hint) = next_hint {
+            // Update the next hint
+            let hint_names = CHECKPOINT_HINTS.load(deps.storage)?;
+
+            // Ensure new_progress is within bounds (using usize)
+            if (new_progress as usize) > hint_names.len() {
+                return Err(StdError::generic_err(
+                    "Progress exceeds available checkpoint hints",
+                ));
+            }
+            next_hint.value = hint_names[new_progress as usize].to_string();
+        }
+
+        // Find and update the "Completed Checkpoints" attribute
+        let completed_checkpoints = private_attributes
+            .iter_mut()
+            .find(|attr| attr.trait_type.as_deref() == Some("Completed Checkpoints"));
+        if let Some(completed_checkpoints) = completed_checkpoints {
+            // Append new checkpoint to the completed list (assuming it's a comma-separated string)
+            let checkpoint_names = CHECKPOINT_NAMES.load(deps.storage)?;
+            let new_checkpoint = checkpoint_names[(new_progress as usize) - 1].to_string();
+            let mut current_completed = completed_checkpoints.value.clone();
+            if !current_completed.is_empty() {
+                current_completed.push_str(", ");
+            }
+            current_completed.push_str(&new_checkpoint);
+            completed_checkpoints.value = current_completed;
+        }
+
+        // Re-assign the updated attributes back to the private extension
+        priv_meta.extension = Some(Extension {
+            image: private_extension.image,
+            image_data: private_extension.image_data,
+            external_url: private_extension.external_url,
+            description: private_extension.description,
+            name: private_extension.name,
+            attributes: Some(private_attributes), // Use the modified attributes
+            background_color: private_extension.background_color,
+            animation_url: private_extension.animation_url,
+            youtube_url: private_extension.youtube_url,
+            media: private_extension.media,
+            protected_attributes: private_extension.protected_attributes,
+            token_subtype: private_extension.token_subtype,
+        });
+
+        // Save the updated private metadata back to storage
+        set_metadata_impl(deps.storage, &token, idx, PREFIX_PRIV_META, &priv_meta)?;
+    }
+
+    // If no Checkpoint Progress attribute is found, return an error
+    // Err(StdError::generic_err("Checkpoint Progress attribute not found in metadata"))
+
+    Ok(Response::new().set_data(to_binary(&ExecuteAnswer::TriggerEvent { status: Success })?))
 }
 
 // /// Function to add a walk
@@ -676,15 +858,17 @@ pub fn mint(
 
     // Validate or default the owner address
     let owner_addr = if let Some(owner_str) = owner {
-        deps.api.addr_validate(&owner_str)?  // Validate the provided owner
+        deps.api.addr_validate(&owner_str)? // Validate the provided owner
     } else {
-        sender.clone()  // If no owner is provided, use the sender as the owner
+        sender.clone() // If no owner is provided, use the sender as the owner
     };
 
     let tickets_sold = TICKETS_SOLD.load(deps.storage)?;
     let max_tickets = MAX_TICKETS.load(deps.storage)?;
     if tickets_sold >= max_tickets {
-        return Err(StdError::generic_err("All tickets have been sold for this walk."));
+        return Err(StdError::generic_err(
+            "All tickets have been sold for this walk.",
+        ));
     }
 
     let badge_image = BADGE_IMAGES.load(deps.storage)?[0].to_string();
@@ -693,12 +877,14 @@ pub fn mint(
     let checkpoint_hint = CHECKPOINT_HINTS.load(deps.storage)?[0].to_string();
 
     let public_metadata = Some(Metadata {
-        token_uri: None,  
+        token_uri: None,
         extension: Some(Extension {
             image: Some(badge_image),
-            image_data: None,  
-            external_url: None,  
-            description: Some("This NFT represents a ticket for the Routeburn Track walk.".to_string()),  // Walk description
+            image_data: None,
+            external_url: None,
+            description: Some(
+                "This NFT represents a ticket for the Routeburn Track walk.".to_string(),
+            ), // Walk description
             name: Some("Routeburn Trail NFT Ticket".to_string()),
             attributes: Some(vec![
                 Trait {
@@ -710,38 +896,40 @@ pub fn mint(
                 Trait {
                     display_type: Some("number".to_string()),
                     trait_type: Some("Checkpoint Progress".to_string()),
-                    value: "0".to_string(),  // Indicating current checkpoint progress
-                    max_value: Some((checkpoint_names.len() - 1).to_string()),  
+                    value: "0".to_string(), // Indicating current checkpoint progress
+                    max_value: Some((checkpoint_names.len() - 1).to_string()),
                 },
                 Trait {
                     display_type: Some("date".to_string()),
                     trait_type: Some("Walk Date".to_string()),
-                    value: walk_date.unwrap_or("2022-01-01".to_string()),  
+                    value: walk_date.unwrap_or("2022-01-01".to_string()),
                     max_value: None,
                 },
             ]),
-            background_color: Some("FFFFFF".to_string()),  
+            background_color: Some("FFFFFF".to_string()),
             animation_url: None,
             youtube_url: None,
             media: None,
-            protected_attributes: None, 
-            token_subtype: Some("badge".to_string()),  
+            protected_attributes: None,
+            token_subtype: Some("badge".to_string()),
         }),
     });
 
     let private_metadata = Some(Metadata {
-        token_uri: None,  
+        token_uri: None,
         extension: Some(Extension {
-            image: None,  
+            image: None,
             image_data: None,
             external_url: None,
-            description: Some("This metadata contains private checkpoint and progress data.".to_string()),
-            name: Some("Routeburn Track Private Data".to_string()),  // Name the private data for clarity
+            description: Some(
+                "This metadata contains private checkpoint and progress data.".to_string(),
+            ),
+            name: Some("Routeburn Track Private Data".to_string()), // Name the private data for clarity
             attributes: Some(vec![
                 Trait {
                     display_type: None,
                     trait_type: Some("Next Hint".to_string()),
-                    value: checkpoint_hint,  // Next hint
+                    value: checkpoint_hint, // Next hint
                     max_value: None,
                 },
                 Trait {
@@ -753,7 +941,7 @@ pub fn mint(
                 Trait {
                     display_type: None,
                     trait_type: Some("Completed Checkpoints".to_string()),
-                    value: "".to_string(), 
+                    value: "".to_string(),
                     max_value: None,
                 },
             ]),
@@ -762,7 +950,7 @@ pub fn mint(
             youtube_url: None,
             media: None,
             protected_attributes: None,
-            token_subtype: Some("private_data".to_string()),  // Used to indicate private data
+            token_subtype: Some("private_data".to_string()), // Used to indicate private data
         }),
     });
 
@@ -2102,8 +2290,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         // QueryMsg::WalkName {} => query_walk_name(deps),
         // QueryMsg::WalkPublic { walk_name } => query_walk_public(deps, walk_name),
         // TODO: Remove this before submission
-        QueryMsg::WalkData {  } => query_walk_data(deps),
-        QueryMsg::WalkInfo {  } => query_walk_info(deps),
+        QueryMsg::WalkData {} => query_walk_data(deps),
+        QueryMsg::WalkInfo {} => query_walk_info(deps),
     };
     pad_query_result(response, BLOCK_SIZE)
 }
@@ -2112,11 +2300,11 @@ pub fn query_walk_info(deps: Deps) -> StdResult<Binary> {
     let walk_name = WALK_NAME.load(deps.storage)?;
     let max_tickets = MAX_TICKETS.load(deps.storage)?;
     let tickets_sold = TICKETS_SOLD.load(deps.storage)?;
-    Ok(to_binary(&QueryAnswer::WalkInfo { 
+    Ok(to_binary(&QueryAnswer::WalkInfo {
         walk_name,
         max_tickets,
         tickets_sold,
-     })?)
+    })?)
 }
 
 // TODO: Remove this before submission
@@ -2126,11 +2314,11 @@ pub fn query_walk_data(deps: Deps) -> StdResult<Binary> {
     let tickets_sold = TICKETS_SOLD.load(deps.storage)?;
     let checkpoint_coords = CHECKPOINT_COORDS.load(deps.storage)?;
     let checkpoint_names = CHECKPOINT_NAMES.load(deps.storage)?;
-    let checkpoint_hints  = CHECKPOINT_HINTS.load(deps.storage)?;
+    let checkpoint_hints = CHECKPOINT_HINTS.load(deps.storage)?;
     let badge_images = BADGE_IMAGES.load(deps.storage)?;
     let admin = ADMIN.load(deps.storage)?;
 
-    Ok(to_binary(&QueryAnswer::WalkData { 
+    Ok(to_binary(&QueryAnswer::WalkData {
         walk_name,
         max_tickets,
         tickets_sold,
@@ -2139,13 +2327,13 @@ pub fn query_walk_data(deps: Deps) -> StdResult<Binary> {
         checkpoint_hints,
         badge_images,
         admin: admin.to_string(),
-     })?)
+    })?)
 }
 
 // pub fn query_walk_public(deps: Deps, walk_name: String) -> StdResult<Binary> {
 //     let walk_public = WALKS_PUBLIC.get(deps.storage, &walk_name).ok_or_else(|| StdError::generic_err("Walk not found"))?;
 
-//     Ok(to_binary(&QueryAnswer::WalkPublic { 
+//     Ok(to_binary(&QueryAnswer::WalkPublic {
 //         walk_name: walk_public.walk_name,
 //         max_tickets: walk_public.max_tickets,
 //         tickets_sold: walk_public.tickets_sold,
@@ -2915,19 +3103,18 @@ pub fn query_tokens(
     let is_admin = if let Some(viewer_addr) = viewer {
         // Validate the viewer address
         let validated_viewer = deps.api.addr_validate(viewer_addr)?;
-    
+
         // Convert validated_viewer (Addr) to CanonicalAddr to compare with admin_addr (CanonicalAddr)
         let validated_viewer_canonical = deps.api.addr_canonicalize(validated_viewer.as_str())?;
-    
+
         // Compare the canonicalized viewer address with the admin address
         validated_viewer_canonical == admin_addr
     } else {
         false
     };
 
-
     // determine the querier
-    let (is_owner, may_querier) =  if is_admin {
+    let (is_owner, may_querier) = if is_admin {
         (true, Some(admin_addr))
     } else if let Some(pmt) = from_permit.as_ref() {
         // permit tells you who is querying, so also check if he is the owner

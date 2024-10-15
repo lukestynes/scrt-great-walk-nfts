@@ -58,37 +58,6 @@ pub static TX_ID_STORE: AppendStore<u64> = AppendStore::new(b"txid");
 pub static ADMIN_KEY: &[u8] = b"admin";
 pub static ADMIN: Item<CanonicalAddr> = Item::new(ADMIN_KEY);
 
-// // Storage map for the walks, indexed by walk_name
-// pub static WALKS_PUBLIC_KEY: &[u8] = b"walkspub";
-// pub static WALKS_PUBLIC: Keymap<String, WalkPublicData> = Keymap::new(WALKS_PUBLIC_KEY);
-
-// // Storage map for private data, indexed by walk_name
-// pub static WALKS_PRIVATE_KEY: &[u8] = b"walkspriv";
-// pub static WALKS_PRIVATE: Keymap<String, WalkPrivateData> = Keymap::new(WALKS_PRIVATE_KEY);
-
-// // Struct for public walk data
-// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-// pub struct WalkPublicData {
-//     pub walk_name: String,
-//     pub max_tickets: u32,
-//     pub tickets_sold: u32,
-// }
-
-// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-// pub struct WalkPrivateData {
-//     // pub required_checkpoints: HashMap<String, Checkpoint>,
-//     // pub optional_checkpoints: HashMap<String, Checkpoint>,
-//     pub checkpoint_order: Vec<String>,
-//     pub badge_images: Vec<String>,
-// }
-// //
-// // Struct for a single checkpoint's data
-// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-// pub struct Checkpoint {
-//     pub gps_coordinates: String,
-//     pub hint: String,
-// }
-
 pub static WALK_NAME_KEY: &[u8] = b"walkname";
 pub static WALK_NAME: Item<String> = Item::new(WALK_NAME_KEY);
 
