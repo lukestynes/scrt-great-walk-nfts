@@ -73,8 +73,8 @@ export default function NavInner({ isAuth }: { isAuth: boolean }) {
         >
           <MountainSnowIcon />
         </Link>
-        {isLandingPage
-          ? navItemsNoAuth.map((item) => (
+        {authorised
+          ? navItemsAuth.map((item) => (
               <Link
                 key={item.name}
                 href={item.href ?? ""}
@@ -87,7 +87,7 @@ export default function NavInner({ isAuth }: { isAuth: boolean }) {
                 {item.name}
               </Link>
             ))
-          : navItemsAuth.map((item) => (
+          : navItemsNoAuth.map((item) => (
               <Link
                 key={item.name}
                 href={item.href ?? ""}
