@@ -17,7 +17,7 @@ const secretjs = new SecretNetworkClient({
 
 const instantiateContract = async (
   codeId: string,
-  contractCodeHash: string
+  contractCodeHash: string,
 ): Promise<string> => {
   // const initMsg = {
   //     name: "Critter NFT",
@@ -37,17 +37,20 @@ const instantiateContract = async (
       "44.8221, 168.1136",
       "44.7322, 168.1590",
       "44.6593, 168.1694",
+      "",
     ],
-    checkpoint_names: ["Routeburn Shelter", "Falls Hut", "Lake Mackenzie"],
+    checkpoint_names: ["Routeburn Shelter", "Falls Hut", "Lake Mackenzie", ""],
     checkpoint_hints: [
       "Start at Routeburn Shelter, a great place to begin your adventure.",
       "Head towards the beautiful Falls Hut, nestled in the forest.",
       "Make your way to Lake Mackenzie for a stunning view of the alpine lake.",
+      "",
     ],
     badge_images: [
       "routeburn_shelter_badge.svg",
       "falls_hut_badge.svg",
       "lake_mackenzie_badge.svg",
+      "finished_badge.svg",
     ],
     entropy: "f8e1b2c1938d1c46b4f7079874",
     config: {
@@ -67,13 +70,13 @@ const instantiateContract = async (
     },
     {
       gasLimit: 400_000,
-    }
+    },
   );
 
   //Find the contract_address in the logs
   //@ts-ignore
   const contractAddress = tx.arrayLog!.find(
-    (log) => log.type === "message" && log.key === "contract_address"
+    (log) => log.type === "message" && log.key === "contract_address",
   ).value;
 
   return contractAddress;
