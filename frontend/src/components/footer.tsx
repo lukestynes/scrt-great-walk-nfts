@@ -42,7 +42,7 @@ export default function Footer() {
                     <GitHubLogoIcon className="ml-1 h-4 w-4" />
                   </Link>
                   <Link
-                    href="https://github.com/lukestynes"
+                    href="https://linkedin.com/in/lukestynes"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center font-medium text-muted-foreground hover:underline"
@@ -51,7 +51,7 @@ export default function Footer() {
                     <LinkedInLogoIcon className="ml-1 h-4 w-4" />
                   </Link>
                   <Link
-                    href="https://github.com/lukestynes"
+                    href="https://lukestynes.dev/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center font-medium text-muted-foreground hover:underline"
