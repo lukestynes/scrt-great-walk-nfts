@@ -1,4 +1,6 @@
 # Great Walk NFT Experience
+![CleanShot 2024-10-16 at 18 28 51@2x](https://github.com/user-attachments/assets/95a8d513-f355-4974-8d22-174fab9903a1)
+
 
 🚀 **Live Application**: You can explore the Great Walk NFT Experience [here](https://scrt-great-walk-nfts.vercel.app/).
 
