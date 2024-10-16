@@ -20,6 +20,7 @@ import { SecretNetworkClient, TxResultCode } from "secretjs";
 import CheckpointsDisplay from "@/components/checkpoint-display";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { NftDossier } from "@/types/nft-dossier";
+import Tilt from "@/components/tilt";
 
 // Placeholder data
 
@@ -57,6 +58,12 @@ export default function TicketDetailsPage({ params }: PageProps) {
   const [nftData, setNftData] = useState<TicketData>(defaultTicket);
   const [processing, setProcessing] = useState(false);
   const [forceRefresh, setForceRefresh] = useState(false);
+
+  const options = {
+    scale: 1.1,
+    speed: 1000,
+    max: 30,
+  };
 
   const { ticket_id } = params;
 
@@ -281,12 +288,14 @@ export default function TicketDetailsPage({ params }: PageProps) {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex aspect-square items-center justify-center rounded-lg bg-muted">
-              <Image
-                src={nftData?.image}
-                width="450"
-                height="450"
-                alt="Badge"
-              />
+              <Tilt options={options}>
+                <Image
+                  src={nftData?.image}
+                  width="450"
+                  height="450"
+                  alt="Badge"
+                />
+              </Tilt>
             </div>
             <p>
               <strong>Ticket ID:</strong> {ticket_id}

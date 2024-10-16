@@ -23,6 +23,7 @@ import { env } from "@/env";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Tilt from "@/components/tilt";
 
 // Placeholder weather data
 const weatherData = {
@@ -36,6 +37,12 @@ export default function DashboardPage() {
   const [nftTickets, setNftTickets] = useState([]); // To store NFT ticket data
   const [loading, setLoading] = useState(true); // To handle loading state
   const [error, setError] = useState(null); // To handle errors
+
+  const options = {
+    scale: 1.2,
+    speed: 1000,
+    max: 30,
+  };
 
   useEffect(() => {
     const fetchNFTs = async () => {
@@ -217,13 +224,15 @@ export default function DashboardPage() {
                       key={index}
                       className="flex items-center justify-center rounded-lg bg-muted p-3"
                     >
-                      <Image
-                        src={ticket.image} // Assuming `ticket.image` contains the URL for the NFT image
-                        alt={ticket.name}
-                        width={150}
-                        height={150}
-                        className="h-full w-full rounded-lg object-cover"
-                      />
+                      <Tilt options={options}>
+                        <Image
+                          src={ticket.image} // Assuming `ticket.image` contains the URL for the NFT image
+                          alt={ticket.name}
+                          width={150}
+                          height={150}
+                          className="h-full w-full rounded-lg object-cover"
+                        />
+                      </Tilt>
                     </div>
                   ))
               ) : (
