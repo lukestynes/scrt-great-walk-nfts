@@ -7,6 +7,8 @@
 This project allows you to purchase NFT tickets for New Zealand's Great Walks, track your progress, and unlock achievements along the journey!
 (Note you will need a Keplr wallet on the Secret Network testnet to interact with the application.)
 
+**Documentation**: Check out instructions on using the application and local deployment [here](https://lukestynes.github.io/scrt-great-walk-nfts/).
+
 ## Overview
 The Great Walks NFT Ticketing System is an innovative platform for managing walk reservations for popular trails through the power of NFTs. Users can mint NFTs as digital tickets representing their participation in a specific walk. These NFTs track progress along the trails, provide hints for upcoming checkpoints, and reward users with a digital badge upon completion of the walk.
 
